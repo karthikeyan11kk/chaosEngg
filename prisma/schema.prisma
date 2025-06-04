@@ -1,0 +1,48 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model File {
+  id               String @id @default(cuid())
+  filename         String
+  originalFilename String
+  totalRecords     Int    @default(0)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  
+  // Changed to one-to-many relationship
+  dataRecords      ChaosScenario[]
+  
+  @@map("files")
+}
+
+model ChaosScenario {
+  id                    String @id @default(cuid())
+  fileId                String
+  componentService      String
+  scenarioName          String
+  description           String
+  priority              Priority
+  possibilityOfIssues   String
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+  
+  file                  File @relation(fields: [fileId], references: [id], onDelete: Cascade)
+  
+  @@map("chaos_scenarios")
+  @@index([fileId])
+  @@index([componentService])
+  @@index([priority])
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
